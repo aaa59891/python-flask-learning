@@ -1,4 +1,5 @@
-from flask import Flask, redirect, url_for, request, render_template, send_from_directory, make_response
+from flask import Flask, redirect, url_for, request, render_template, send_from_directory, make_response, session, abort
+from flask_sqlalchemy import SQLAlchemy
 from pprint import pprint
 from config import DevConfig
 
@@ -67,6 +68,36 @@ def setCookies(data):
   resp = make_response('set cookies finished')
   resp.set_cookie('cookie_test', data)
   return resp
+
+# session test
+#   it need to set the secret_key to app before use session
+#   ex: app.secret_key = '1qaz2wsz3edc5rf6tgb'
+@app.route('/session/welcome/<name>')
+def sessionWelcome(name):
+  if 'name' in session and name == session['name']:
+    return 'Welcome %s' % name
+  return 'You did not login'
+
+@app.route('/session/login/<name>')
+def sessionLogin(name):
+  session['name'] = name
+  return redirect(url_for('sessionWelcome', name=name))
+
+@app.route('/session/logout')
+def sessionLogou():
+  session.pop('name', None)
+  return 'logout!'
+
+# error handler
+@app.route('/error/<int:number>')
+def error(number):
+  if number == 1:
+    return 'pass'
+  else:
+    abort(number)
+
+
+
 
 if __name__ == '__main__':
   app.run(debug = True)
